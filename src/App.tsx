@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import TodoItem from './components/TodoItem'
 
 interface Todo {
   description: string;
@@ -11,7 +12,6 @@ function App() {
   const [todoDescription, setTodoDescription] = useState('')
   const [todoList, setTodoList] = useState<Todo[]>([])
 
-  // Cargar desde LocalStorage
   useEffect(() => {
     const storedTodos = localStorage.getItem('todos')
     if (storedTodos) {
@@ -19,7 +19,6 @@ function App() {
     }
   }, [])
 
-  // Guardar en LocalStorage
   useEffect(() => {
     localStorage.setItem('todos', JSON.stringify(todoList))
   }, [todoList])
@@ -38,33 +37,54 @@ function App() {
     setTodoDescription('')
   }
 
+  const handleToggleComplete = (index: number) => {
+    const updatedTodos = [...todoList]
+    const todo = updatedTodos[index]
+    todo.completed = !todo.completed
+    todo.completedAt = todo.completed ? new Date().toLocaleString() : undefined
+
+    const reordered = [
+      ...updatedTodos.filter(t => !t.completed),
+      ...updatedTodos.filter(t => t.completed)
+    ]
+
+    setTodoList(reordered)
+  }
+
+  const handleDelete = (index: number) => {
+    const updatedTodos = [...todoList]
+    updatedTodos.splice(index, 1)
+    setTodoList(updatedTodos)
+  }
+
   return (
-    <div style={{ border: '1px solid red', padding: 10 }}>
-      <div>
+    <div className="app-container">
+      <div className="input-container">
         <input
           type='text'
           value={todoDescription}
           onChange={handleChange}
-          style={{ marginRight: 10 }}
+          placeholder="New Task"
         />
         <button onClick={handleAdd}>Add Item</button>
       </div>
 
-      <div style={{ marginTop: 20 }}>TODOs Here:</div>
-      <ul>
-        {todoList.map((todo, index) => (
-          <li key={index}>
-            <input
-              type='checkbox'/>
-              {todo.description}
-            
-           
-          </li>
-        ))}
-      </ul>
+      <div className="todo-list">
+        <h3>TODOs:</h3>
+        <ul>
+          {todoList.map((todo, index) => (
+            <TodoItem
+              key={index}
+              todo={todo}
+              index={index}
+              handleToggleComplete={handleToggleComplete}
+              handleDelete={handleDelete}
+            />
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }
 
 export default App
-  
